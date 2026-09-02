@@ -1,4 +1,4 @@
-# Master Express
+﻿# Master Express
 
 Sitio web corporativo para el alquiler de **togas, birretes y accesorios de graduación** en Bogotá y Colombia.
 
@@ -15,7 +15,7 @@ Diseñado para colegios, universidades y promociones que necesitan vestuario aca
   ·
   <a href="https://wa.me/573134695020">WhatsApp</a>
   ·
-  <a href="mailto:gerencia@masterexpress.com">gerencia@masterexpress.com</a>
+  <a href="mailto:gerencia@masterexpress.com.co">gerencia@masterexpress.com.co</a>
 </p>
 
 ---
@@ -26,7 +26,7 @@ Diseñado para colegios, universidades y promociones que necesitan vestuario aca
 |------|---------|
 | **Marca** | Identidad visual propia (DM Sans + Playfair Display, acento dorado) |
 | **Páginas** | Inicio, Nosotros, Servicios, Galería y Contacto |
-| **Cotización** | Formulario a `gerencia@masterexpress.com` + WhatsApp |
+| **Cotización** | Formulario a `gerencia@masterexpress.com.co` + WhatsApp |
 | **Motion** | Animaciones con [Anime.js](https://animejs.com) (CDN ESM) |
 | **SEO** | Meta, Open Graph, JSON-LD, `robots.txt`, `sitemap.xml` |
 | **Performance** | Preload LCP, lazy-load, prefetch de navegación, `.htaccess` |
@@ -76,7 +76,7 @@ Abre `http://localhost:8765`.
 - JavaScript ES modules
 - [Anime.js 4](https://cdn.jsdelivr.net/npm/animejs/+esm) vía jsDelivr / esm.sh
 - [Bootstrap Icons](https://icons.getbootstrap.com)
-- [FormSubmit](https://formsubmit.co) → `gerencia@masterexpress.com`
+- [FormSubmit](https://formsubmit.co) → `gerencia@masterexpress.com.co`
 - Google Fonts (DM Sans, Playfair Display)
 
 ---
@@ -94,7 +94,7 @@ Tras el deploy en producción:
 ## Contacto comercial
 
 - **WhatsApp:** [+57 313 469 5020](https://wa.me/573134695020)
-- **Correo:** [gerencia@masterexpress.com](mailto:gerencia@masterexpress.com)
+- **Correo:** [gerencia@masterexpress.com.co](mailto:gerencia@masterexpress.com.co)
 - **Cobertura:** Bogotá y Colombia  
 - **Horario:** Lunes a sábado, 8:00 a.m. – 6:00 p.m.
 

@@ -1,4 +1,4 @@
-const WA = '573134695020';
+﻿const WA = '573134695020';
 const toggle = document.querySelector('.nav-toggle');
 const nav = document.querySelector('.nav');
 
@@ -36,7 +36,7 @@ document.querySelectorAll('.nav a').forEach((a) => a.addEventListener('click', (
 window.addEventListener('resize', () => { if (innerWidth > 768) setMenu(false); }, { passive: true });
 
 const form = document.querySelector('[data-contact-form], [data-whatsapp-form]');
-const CONTACT_EMAIL = 'gerencia@masterexpress.com';
+const CONTACT_EMAIL = 'gerencia@masterexpress.com.co';
 const RATE_KEY = 'me-quote-sent';
 const RATE_MS = 90000;
 const MIN_FILL_MS = 2500;
@@ -58,6 +58,37 @@ function cleanText(value, max) {
 
 function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+}
+
+function parseCantidad(value) {
+  const raw = cleanText(value, 12).replace(/\s/g, '');
+  if (!raw) return { ok: true, value: '' };
+  if (!/^\d+$/.test(raw)) return { ok: false, value: '' };
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num < 1 || num > 99999) return { ok: false, value: '' };
+  return { ok: true, value: String(num) };
+}
+
+function formatFecha(iso) {
+  if (!iso) return 'No indicada';
+  const parts = iso.split('-').map(Number);
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return iso;
+  const [year, month, day] = parts;
+  return new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(year, month - 1, day));
+}
+
+function buildSubmitFields(data) {
+  return {
+    'Nombre completo': data.nombre,
+    'Correo electrónico': data.email,
+    Teléfono: data.telefono || 'No indicado',
+    Institución: data.institucion,
+    Ciudad: data.ciudad || 'No indicada',
+    'Cantidad aproximada': data.cantidad || 'No indicada',
+    'Fecha del acto': formatFecha(data.fecha),
+    Servicio: data.servicio,
+    'Detalle de la ceremonia': data.mensaje || 'Sin información adicional.',
+  };
 }
 
 function setFieldState(input, ok) {
@@ -89,27 +120,8 @@ function markSent() {
 
 function buildFormData(data) {
   const origin = window.location.href.split('#')[0];
-  const detail = [
-    `Institución: ${data.institucion}`,
-    `Ciudad: ${data.ciudad || 'No indicada'}`,
-    `Cantidad aproximada: ${data.cantidad || 'No indicada'}`,
-    `Fecha del acto: ${data.fecha || 'No indicada'}`,
-    `Servicio: ${data.servicio}`,
-    `Teléfono: ${data.telefono || 'No indicado'}`,
-    '',
-    data.mensaje || 'Sin información adicional.',
-  ].join('\n');
-
   const fd = new FormData();
-  fd.append('name', data.nombre);
-  fd.append('email', data.email);
-  fd.append('phone', data.telefono || 'No indicado');
-  fd.append('institucion', data.institucion);
-  fd.append('ciudad', data.ciudad || 'No indicada');
-  fd.append('cantidad', data.cantidad || 'No indicada');
-  fd.append('fecha', data.fecha || 'No indicada');
-  fd.append('servicio', data.servicio);
-  fd.append('message', detail);
+  Object.entries(buildSubmitFields(data)).forEach(([label, value]) => fd.append(label, value));
   fd.append('_subject', `Cotización Master Express — ${data.institucion}`);
   fd.append('_template', 'table');
   fd.append('_captcha', 'false');
@@ -122,15 +134,7 @@ function buildFormData(data) {
 function buildJsonPayload(data) {
   const origin = window.location.href.split('#')[0];
   return {
-    name: data.nombre,
-    email: data.email,
-    phone: data.telefono || 'No indicado',
-    institucion: data.institucion,
-    ciudad: data.ciudad || 'No indicada',
-    cantidad: data.cantidad || 'No indicada',
-    fecha: data.fecha || 'No indicada',
-    servicio: data.servicio,
-    message: data.mensaje || 'Sin información adicional.',
+    ...buildSubmitFields(data),
     _subject: `Cotización Master Express — ${data.institucion}`,
     _template: 'table',
     _captcha: 'false',
@@ -202,7 +206,27 @@ async function sendQuote(data) {
   }
 }
 
-form?.addEventListener('submit', async (e) => {
+function prepareNativeSubmit(form, data) {
+  const replyto = form.elements._replyto;
+  if (replyto) replyto.value = data.email;
+  const subject = form.elements._subject;
+  if (subject) subject.value = `Cotización Master Express — ${data.institucion}`;
+  const pageUrl = form.elements._url;
+  if (pageUrl) pageUrl.value = window.location.href.split('#')[0];
+  const fecha = form.querySelector('#fecha');
+  if (fecha && data.fecha) {
+    form.dataset.fechaIso = data.fecha;
+    fecha.value = formatFecha(data.fecha);
+  }
+}
+
+function submitFormNatively(form, data) {
+  prepareNativeSubmit(form, data);
+  form.removeEventListener('submit', handleQuoteSubmit);
+  HTMLFormElement.prototype.submit.call(form);
+}
+
+async function handleQuoteSubmit(e) {
   e.preventDefault();
   const card = form.closest('.quote-form-card');
   const status = document.querySelector('#quote-status');
@@ -229,22 +253,25 @@ form?.addEventListener('submit', async (e) => {
     return;
   }
 
+  const cantidadInput = form.querySelector('#cantidad');
+  const cantidadResult = parseCantidad(cantidadInput?.value);
+
   const data = {
-    nombre: cleanText(form.elements.name?.value || form.elements.nombre?.value, 80),
-    email: cleanText(form.elements.email?.value, 120).toLowerCase(),
-    telefono: cleanText(form.elements.telefono?.value || form.elements.phone?.value, 20),
-    institucion: cleanText(form.elements.institucion?.value, 120),
-    ciudad: cleanText(form.elements.ciudad?.value, 60),
-    cantidad: cleanText(form.elements.cantidad?.value, 12),
-    fecha: cleanText(form.elements.fecha?.value, 20),
-    servicio: cleanText(form.elements.servicio?.value, 60),
-    mensaje: cleanText(form.elements.mensaje?.value || form.elements.message?.value, 1200),
+    nombre: cleanText(form.querySelector('#nombre')?.value, 80),
+    email: cleanText(form.querySelector('#email')?.value, 120).toLowerCase(),
+    telefono: cleanText(form.querySelector('#telefono')?.value, 20),
+    institucion: cleanText(form.querySelector('#institucion')?.value, 120),
+    ciudad: cleanText(form.querySelector('#ciudad')?.value, 60),
+    cantidad: cantidadResult.value,
+    fecha: cleanText(form.querySelector('#fecha')?.value, 20),
+    servicio: cleanText(form.querySelector('#servicio')?.value, 60),
+    mensaje: cleanText(form.querySelector('#mensaje')?.value, 1200),
   };
 
   const checks = [
-    [form.elements.name || form.elements.nombre, data.nombre.length >= 2],
-    [form.elements.email, isEmail(data.email)],
-    [form.elements.institucion, data.institucion.length >= 2],
+    [form.querySelector('#nombre'), data.nombre.length >= 2],
+    [form.querySelector('#email'), isEmail(data.email)],
+    [form.querySelector('#institucion'), data.institucion.length >= 2],
   ];
   checks.forEach(([input, ok]) => setFieldState(input, ok));
   if (checks.some(([, ok]) => !ok)) {
@@ -252,12 +279,19 @@ form?.addEventListener('submit', async (e) => {
     return;
   }
 
+  if (cleanText(cantidadInput?.value, 12) && !cantidadResult.ok) {
+    setFieldState(cantidadInput, false);
+    showStatus(status, 'La cantidad debe ser un número entero mayor a 0.');
+    return;
+  }
+  setFieldState(cantidadInput, true);
+
   form.classList.add('is-busy');
   if (submit) {
     submit.disabled = true;
     submit.innerHTML = '<i class="bi bi-hourglass-split"></i> Enviando…';
   }
-  showStatus(status, 'Enviando a gerencia@masterexpress.com…', true);
+  showStatus(status, 'Enviando a gerencia@masterexpress.com.co…', true);
 
   try {
     await sendQuote(data);
@@ -271,8 +305,13 @@ form?.addEventListener('submit', async (e) => {
     if (err?.message === 'ACTIVATE') {
       showStatus(
         status,
-        'Activa el formulario una sola vez: revisa gerencia@masterexpress.com (bandeja o spam), abre el enlace “Activate Form” de FormSubmit y vuelve a enviar la cotización.',
+        'Activa el formulario una sola vez: revisa gerencia@masterexpress.com.co (bandeja o spam), abre el enlace “Activate Form” de FormSubmit y vuelve a enviar la cotización.',
       );
+    } else if (form.action.includes('formsubmit.co')) {
+      showStatus(status, 'Completando el envío…', true);
+      markSent();
+      submitFormNatively(form, data);
+      return;
     } else {
       const wa = `https://wa.me/${WA}?text=${encodeURIComponent(
         `Hola, buen día. Quiero cotizar togas y birretes con Master Express.\nNombre: ${data.nombre}\nCorreo: ${data.email}\nInstitución: ${data.institucion}\nCiudad: ${data.ciudad || 'No indicada'}\nCantidad: ${data.cantidad || 'No indicada'}\nFecha: ${data.fecha || 'No indicada'}\nServicio: ${data.servicio}`,
@@ -295,7 +334,17 @@ form?.addEventListener('submit', async (e) => {
       submit.innerHTML = '<i class="bi bi-send-fill"></i> Enviar cotización';
     }
   }
-});
+}
+
+form?.addEventListener('submit', handleQuoteSubmit);
+
+if (new URLSearchParams(window.location.search).get('sent') === '1') {
+  const card = document.querySelector('.quote-form-card');
+  const success = document.querySelector('#quote-success');
+  card?.classList.add('is-sent');
+  success?.removeAttribute('hidden');
+  history.replaceState(null, '', window.location.pathname + window.location.hash);
+}
 
 document.querySelector('#quote-reset')?.addEventListener('click', () => {
   const card = document.querySelector('.quote-form-card');
