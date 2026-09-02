@@ -1,0 +1,30 @@
+{
+  "name": "Master Express — Togas y birretes",
+  "short_name": "Master Express",
+  "description": "Alquiler de togas, birretes y accesorios de graduación en Bogotá y Colombia.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbfaf7",
+  "theme_color": "#121417",
+  "lang": "es-CO",
+  "icons": [
+    {
+      "src": "assets/img/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/img/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

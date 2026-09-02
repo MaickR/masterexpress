@@ -1,0 +1,16 @@
+# Dependencies / tooling
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+
+# Archives / local clutter
+*.zip
+Master Express.zip
+
+# Editor
+.cursor/
+*.swp
+*.swo
